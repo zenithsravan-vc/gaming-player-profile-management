@@ -1,0 +1,6 @@
+{
+  "name": "Gaming Player Profile Management",
+  "description": "Full-stack gaming player profile management web app powered by Redis Strings operations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
