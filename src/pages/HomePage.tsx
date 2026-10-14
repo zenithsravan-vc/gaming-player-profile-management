@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlayerProfile } from '../types';
 import PlayerCard from '../components/PlayerCard';
 import PlayerConnectionsModal from '../components/PlayerConnectionsModal';
@@ -46,6 +46,38 @@ export default function HomePage({
   boostingId,
 }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  
+const [visitorCount, setVisitorCount] = useState<number | null>(null);
+
+useEffect(() => {
+  let visitorId = localStorage.getItem('gaming-visitor-id');
+
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    localStorage.setItem('gaming-visitor-id', visitorId);
+  }
+
+  fetch('/api/visitor', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ visitorId }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch visitor count');
+      }
+      return response.json();
+    })
+    .then((data: { count: number }) => {
+      setVisitorCount(data.count);
+    })
+    .catch((error) => {
+      console.error('Visitor counter error:', error);
+    });
+}, []);
+
   const [showErrorReport, setShowErrorReport] = useState(false);
   const [showPlayerConnections, setShowPlayerConnections] = useState(false);
   const [showMonetDBAnalytics, setShowMonetDBAnalytics] = useState(false);
@@ -65,6 +97,16 @@ export default function HomePage({
   return (
     <div className="space-y-8 pb-12">
       {/* Hero Overview Header */}
+      
+<div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
+  <Users size={16} className="text-emerald-400" />
+  <span>
+    {visitorCount === null
+      ? 'Counting visitors...'
+      : `${visitorCount.toLocaleString()} unique visitors`}
+  </span>
+</div>
+
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 

@@ -7,6 +7,8 @@ import redisRoutes from './server/routes/redisRoutes.js';
 import mongoRoutes from './server/routes/mongoRoutes.js';
 import monetdbRoutes from './server/routes/monetdbRoutes.js';
 
+import visitorRoutes from './server/routes/visitorRoutes.js';
+
 import neo4jRoutes from './server/routes/neo4jRoutes.js';
 import errorReportRoutes from './server/routes/errorReportRoutes.js';
 async function startServer() {
@@ -32,6 +34,8 @@ async function startServer() {
   app.use('/api', errorReportRoutes);
   app.use('/api', monetdbRoutes);
   
+  app.use('/api', visitorRoutes);
+
   app.use('/api', neo4jRoutes);
 
   // Vite middleware for development vs static build for production

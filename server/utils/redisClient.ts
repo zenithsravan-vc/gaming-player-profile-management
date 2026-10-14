@@ -213,10 +213,14 @@ class UnifiedRedisWrapper {
           retryStrategy: () => null, // Don't block if redis URL fails
         });
         
-        ioClient.on('error', () => {
-          this.mode = 'in-memory';
-          this.redisInstance = new InMemoryRedisClient();
-        });
+        ioClient.on('error', (err) => {
+  console.error('Redis connection error:', err.message);
+
+  if (process.env.NODE_ENV !== 'production') {
+    this.mode = 'in-memory';
+    this.redisInstance = new InMemoryRedisClient();
+  }
+});
 
         ioClient.on('connect', () => {
           this.mode = 'ioredis';
