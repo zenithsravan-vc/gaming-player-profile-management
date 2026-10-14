@@ -1,7 +1,22 @@
+
 import { useState } from 'react';
 import { PlayerProfile } from '../types';
 import PlayerCard from '../components/PlayerCard';
-import { Database, Plus, RefreshCw, Search, Sparkles, Terminal, Users, Zap } from 'lucide-react';
+import PlayerConnectionsModal from '../components/PlayerConnectionsModal';
+import ErrorReportModal from '../components/ErrorReportModal';
+import MonetDBAnalytics from '../components/MonetDBAnalytics';
+import {
+  Bug,
+  Database,
+  Network,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Terminal,
+  Users,
+  Zap,
+} from 'lucide-react';
 
 interface HomePageProps {
   players: PlayerProfile[];
@@ -31,10 +46,15 @@ export default function HomePage({
   boostingId,
 }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showErrorReport, setShowErrorReport] = useState(false);
+  const [showPlayerConnections, setShowPlayerConnections] = useState(false);
+  const [showMonetDBAnalytics, setShowMonetDBAnalytics] = useState(false);
 
   const filteredPlayers = players.filter((p) => {
     const term = searchTerm.toLowerCase().trim();
+
     if (!term) return true;
+
     return (
       p.id.toLowerCase().includes(term) ||
       p.username.toLowerCase().includes(term) ||
@@ -46,9 +66,9 @@ export default function HomePage({
     <div className="space-y-8 pb-12">
       {/* Hero Overview Header */}
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-        {/* Background Decorative Accent Elements */}
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="max-w-2xl space-y-3">
@@ -62,33 +82,39 @@ export default function HomePage({
             </h1>
 
             <p className="text-sm text-zinc-300 leading-relaxed">
-              Every player profile is persisted directly inside Redis using standard String data types:
+              Every player profile is persisted directly inside Redis using
+              standard String data types:
               <br />
               <code className="text-amber-300 font-mono text-xs bg-zinc-950/90 px-2.5 py-1.5 rounded-lg border border-zinc-800 inline-block mt-1.5 shadow-inner">
-                Key: player_data:P001 &nbsp;|&nbsp; Value: P001|GamerX|15|9800|First Win,Level Master
+                Key: player_data:P001 &nbsp;|&nbsp; Value:
+                P001|GamerX|15|9800|First Win,Level Master
               </code>
             </p>
 
             <div className="flex flex-wrap items-center gap-2.5 pt-2 text-xs font-mono">
               <span className="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 SET / GET
               </span>
+
               <span className="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-teal-400"></span>
+                <span className="w-2 h-2 rounded-full bg-teal-400" />
                 MSET (Preload)
               </span>
+
               <span className="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
                 SETEX (60s Boost)
               </span>
+
               <span className="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 APPEND (Achievements)
               </span>
             </div>
           </div>
 
+          {/* Main action buttons */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={onPreload}
@@ -106,15 +132,39 @@ export default function HomePage({
               <Terminal className="w-4 h-4 text-amber-400" />
               Redis Inspector
             </button>
+
+            <button
+              onClick={() => setShowErrorReport(true)}
+              className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 font-semibold text-xs flex items-center gap-2 transition-all"
+            >
+              <Bug className="w-4 h-4 text-red-400" />
+              Report Error
+            </button>
+
+            <button
+              onClick={() => setShowPlayerConnections(true)}
+              className="px-4 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold text-xs flex items-center gap-2 transition-all"
+            >
+              <Network className="w-4 h-4" />
+              Player Connections
+            </button>
+
+            <button
+              onClick={() => setShowMonetDBAnalytics(true)}
+              className="px-4 py-2.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 font-semibold text-xs flex items-center gap-2 transition-all"
+            >
+              <Database className="w-4 h-4" />
+              MonetDB Analytics
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Control Bar: Search & Actions */}
+      {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Search Input Filter */}
         <div className="relative w-full sm:w-96">
           <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+
           <input
             type="text"
             placeholder="Search by Player ID (P001), Username, or Achievement..."
@@ -122,6 +172,7 @@ export default function HomePage({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 outline-none transition-colors"
           />
+
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
@@ -139,7 +190,11 @@ export default function HomePage({
             className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs transition-colors flex items-center gap-1.5"
             title="Refresh player profiles from Redis"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-400' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${
+                isLoading ? 'animate-spin text-emerald-400' : ''
+              }`}
+            />
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
@@ -157,16 +212,26 @@ export default function HomePage({
       {isLoading && players.length === 0 ? (
         <div className="text-center py-16 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl">
           <Database className="w-10 h-10 text-emerald-400 mx-auto mb-3 animate-pulse" />
-          <p className="text-sm text-zinc-300 font-medium">Fetching Redis Player Keys...</p>
-          <p className="text-xs text-zinc-500 mt-1">Executing Redis KEYS player_data:* & GET commands</p>
+
+          <p className="text-sm text-zinc-300 font-medium">
+            Fetching Redis Player Keys...
+          </p>
+
+          <p className="text-xs text-zinc-500 mt-1">
+            Executing Redis KEYS player_data:* & GET commands
+          </p>
         </div>
       ) : filteredPlayers.length === 0 ? (
         <div className="text-center py-16 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl space-y-4">
           <Users className="w-12 h-12 text-zinc-600 mx-auto" />
+
           <div className="space-y-1 max-w-sm mx-auto">
             <h3 className="text-base font-bold text-zinc-100">
-              {searchTerm ? 'No Players Matched Your Search' : 'No Players Found in Redis'}
+              {searchTerm
+                ? 'No Players Matched Your Search'
+                : 'No Players Found in Redis'}
             </h3>
+
             <p className="text-xs text-zinc-400">
               {searchTerm
                 ? `No profile keys matched "${searchTerm}". Try clearing the search.`
@@ -207,6 +272,25 @@ export default function HomePage({
             />
           ))}
         </div>
+      )}
+
+      {/* Modals */}
+      {showErrorReport && (
+        <ErrorReportModal
+          onClose={() => setShowErrorReport(false)}
+        />
+      )}
+
+      {showPlayerConnections && (
+        <PlayerConnectionsModal
+          onClose={() => setShowPlayerConnections(false)}
+        />
+      )}
+
+      {showMonetDBAnalytics && (
+        <MonetDBAnalytics
+          onClose={() => setShowMonetDBAnalytics(false)}
+        />
       )}
     </div>
   );

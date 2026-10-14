@@ -11,6 +11,7 @@ import {
 } from './services/api';
 import Navbar from './components/Navbar';
 import RedisConsoleModal from './components/RedisConsoleModal';
+import MongoConsoleModal from './components/MongoConsoleModal';
 import HomePage from './pages/HomePage';
 import AddPlayerPage from './pages/AddPlayerPage';
 import PlayerDetailsPage from './pages/PlayerDetailsPage';
@@ -22,6 +23,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPreloading, setIsPreloading] = useState<boolean>(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState<boolean>(false);
+  const [isMongoInspectorOpen, setIsMongoInspectorOpen] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [boostingId, setBoostingId] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
@@ -143,7 +145,8 @@ export default function App() {
         onPreload={handlePreload}
         isPreloading={isPreloading}
         totalPlayersCount={players.length}
-        openInspector={() => setIsInspectorOpen(true)}
+	openInspector={() => setIsInspectorOpen(true)}
+	openMongoInspector={() => setIsMongoInspectorOpen(true)}
       />
 
       {/* Floating Notification Toast */}
@@ -194,6 +197,10 @@ export default function App() {
       <RedisConsoleModal
         isOpen={isInspectorOpen}
         onClose={() => setIsInspectorOpen(false)}
+      />
+	      <MongoConsoleModal
+        isOpen={isMongoInspectorOpen}
+        onClose={() => setIsMongoInspectorOpen(false)}
       />
     </div>
   );

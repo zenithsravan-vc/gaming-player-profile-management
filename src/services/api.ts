@@ -1,5 +1,11 @@
-import { PlayerProfile, RedisKeyInfo, RedisLogEntry } from '../types';
-
+import {
+  PlayerProfile,
+  RedisKeyInfo,
+  RedisLogEntry,
+  MongoLogEntry,
+  MongoPlayer,
+  ErrorReport,
+} from '../types';
 const API_BASE = '';
 
 export async function fetchAllPlayers(): Promise<PlayerProfile[]> {
@@ -101,4 +107,70 @@ export async function fetchRedisKeys(): Promise<{ totalKeys: number; redisMode: 
   const res = await fetch(`${API_BASE}/api/redis/keys`);
   if (!res.ok) return { totalKeys: 0, redisMode: 'unknown', keys: [] };
   return await res.json();
+}
+export async function fetchMongoLogs(): Promise<MongoLogEntry[]> {
+  const res = await fetch(`${API_BASE}/api/mongo/logs`);
+
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.logs || [];
+}
+
+export async function fetchMongoPlayers(): Promise<MongoPlayer[]> {
+  const res = await fetch(`${API_BASE}/api/mongo/players`);
+
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.players || [];
+}
+
+export async function fetchMongoPlayerById(
+  id: string
+): Promise<MongoPlayer> {
+  const res = await fetch(
+    `${API_BASE}/api/mongo/player/${encodeURIComponent(id)}`
+  );
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(
+      errData.error || `MongoDB player ${id} not found`
+    );
+  }
+
+  const data = await res.json();
+  return data.player;
+}
+export async function createErrorReport(report: {
+  playerId: string;
+  username: string;
+  category: string;
+  description: string;
+}): Promise<{ message: string; report: ErrorReport }> {
+  const res = await fetch(`${API_BASE}/api/error-reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(report),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to submit error report');
+  }
+
+  return data;
+}
+export async function fetchErrorReports(): Promise<ErrorReport[]> {
+  const res = await fetch(`${API_BASE}/api/error-reports`);
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to fetch error reports');
+  }
+
+  return data.reports;
 }

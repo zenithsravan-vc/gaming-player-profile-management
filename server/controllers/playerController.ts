@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { redisService } from '../services/redisService.js';
+import { mongoService } from '../services/mongoService.js';
 
 export class PlayerController {
   /**
@@ -27,13 +28,19 @@ export class PlayerController {
         ? achievements.split(',').map((s) => s.trim()).filter(Boolean)
         : [];
 
-      const player = await redisService.setPlayer({
-        id: cleanId,
-        username: String(username).trim(),
-        level: Number(level) || 1,
-        highScore: Number(highScore) || 0,
-        achievements: achList,
-      });
+     const playerData = {
+  id: cleanId,
+  username: String(username).trim(),
+  level: Number(level) || 1,
+  highScore: Number(highScore) || 0,
+  achievements: achList,
+};
+
+// Store player in Redis
+const player = await redisService.setPlayer(playerData);
+
+// Store the same player in MongoDB
+await mongoService.createPlayer(playerData);
 
       res.status(201).json({
         message: 'Player profile successfully stored in Redis using SET command.',

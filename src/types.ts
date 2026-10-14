@@ -30,3 +30,33 @@ export interface RedisKeyInfo {
 }
 
 export type ActiveTab = 'home' | 'add' | 'details' | 'inspector';
+export interface MongoLogEntry {
+  _id?: string;
+  timestamp: string;
+  operation: string;
+  collection: string;
+  query: unknown;
+  result: unknown;
+  explanation: string;
+}
+
+export interface MongoPlayer {
+  _id?: string;
+  id: string;
+  username: string;
+  level: number;
+  highScore: number;
+  achievements: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface ErrorReport {
+  _id?: string;
+  playerId: string;
+  username: string;
+  category: string;
+  description: string;
+  status: 'Open' | 'In Progress' | 'Resolved';
+  createdAt: string;
+  updatedAt: string;
+}

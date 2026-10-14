@@ -1,5 +1,12 @@
 import { ActiveTab } from '../types';
-import { Gamepad2, Plus, Terminal, Users, Zap } from 'lucide-react';
+import {
+  Database,
+  Gamepad2,
+  Plus,
+  Terminal,
+  Users,
+  Zap,
+} from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -8,6 +15,7 @@ interface NavbarProps {
   isPreloading: boolean;
   totalPlayersCount: number;
   openInspector: () => void;
+  openMongoInspector: () => void;
 }
 
 export default function Navbar({
@@ -17,6 +25,7 @@ export default function Navbar({
   isPreloading,
   totalPlayersCount,
   openInspector,
+openMongoInspector,
 }: NavbarProps) {
   return (
     <header className="bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 text-zinc-100 sticky top-0 z-30 shadow-xl">
@@ -78,6 +87,13 @@ export default function Navbar({
             >
               <Terminal className="w-4 h-4 text-amber-400" />
               Redis Inspector
+            </button>
+	    <button
+              onClick={openMongoInspector}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-green-300 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 transition-all"
+            >
+              <Database className="w-4 h-4 text-green-400" />
+              MongoDB Inspector
             </button>
           </nav>
 

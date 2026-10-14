@@ -4,7 +4,11 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import playerRoutes from './server/routes/playerRoutes.js';
 import redisRoutes from './server/routes/redisRoutes.js';
+import mongoRoutes from './server/routes/mongoRoutes.js';
+import monetdbRoutes from './server/routes/monetdbRoutes.js';
 
+import neo4jRoutes from './server/routes/neo4jRoutes.js';
+import errorReportRoutes from './server/routes/errorReportRoutes.js';
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -24,6 +28,11 @@ async function startServer() {
 
   // Mount Redis Inspector routes
   app.use('/api', redisRoutes);
+  app.use('/api', mongoRoutes);
+  app.use('/api', errorReportRoutes);
+  app.use('/api', monetdbRoutes);
+  
+  app.use('/api', neo4jRoutes);
 
   // Vite middleware for development vs static build for production
   if (process.env.NODE_ENV !== 'production') {
