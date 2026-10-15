@@ -6,6 +6,7 @@ import PlayerConnectionsModal from '../components/PlayerConnectionsModal';
 import ErrorReportModal from '../components/ErrorReportModal';
 import MonetDBAnalytics from '../components/MonetDBAnalytics';
 import {
+  Activity,
   Bug,
   Database,
   Network,
@@ -46,41 +47,95 @@ export default function HomePage({
   boostingId,
 }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  
-const [visitorCount, setVisitorCount] = useState<number | null>(null);
-
-useEffect(() => {
-  let visitorId = localStorage.getItem('gaming-visitor-id');
-
-  if (!visitorId) {
-    visitorId = crypto.randomUUID();
-    localStorage.setItem('gaming-visitor-id', visitorId);
-  }
-
-  fetch('/api/visitor', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ visitorId }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Failed to fetch visitor count');
-      }
-      return response.json();
-    })
-    .then((data: { count: number }) => {
-      setVisitorCount(data.count);
-    })
-    .catch((error) => {
-      console.error('Visitor counter error:', error);
-    });
-}, []);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [activeVisitorCount, setActiveVisitorCount] = useState<number | null>(
+    null
+  );
 
   const [showErrorReport, setShowErrorReport] = useState(false);
   const [showPlayerConnections, setShowPlayerConnections] = useState(false);
   const [showMonetDBAnalytics, setShowMonetDBAnalytics] = useState(false);
+
+  // Unique visitors and active tab sessions.
+  useEffect(() => {
+    let visitorId = localStorage.getItem('gaming-visitor-id');
+
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      localStorage.setItem('gaming-visitor-id', visitorId);
+    }
+
+    // Each browser tab gets its own session ID.
+    let sessionId = sessionStorage.getItem('gaming-session-id');
+
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem('gaming-session-id', sessionId);
+    }
+
+    let isDisposed = false;
+
+    const updateVisitorCounts = async () => {
+      try {
+        const response = await fetch('/api/visitor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ visitorId, sessionId }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch visitor counts');
+        }
+
+        const data: {
+          uniqueVisitors: number;
+          activeVisitors: number;
+        } = await response.json();
+
+        if (!isDisposed) {
+          setVisitorCount(data.uniqueVisitors);
+          setActiveVisitorCount(data.activeVisitors);
+        }
+      } catch (error) {
+        console.error('Visitor counter error:', error);
+      }
+    };
+
+    // Register this session immediately.
+    void updateVisitorCounts();
+
+    // Refresh the session marker every 30 seconds.
+    const heartbeat = window.setInterval(() => {
+      void updateVisitorCounts();
+    }, 30_000);
+
+    const leaveSession = () => {
+      const payload = JSON.stringify({ sessionId });
+
+      // Notify the server when the tab is leaving.
+      void fetch('/api/visitor/leave', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {
+        // The server-side session expiry is the fallback.
+      });
+    };
+
+    window.addEventListener('pagehide', leaveSession);
+
+    return () => {
+      isDisposed = true;
+      window.clearInterval(heartbeat);
+      window.removeEventListener('pagehide', leaveSession);
+      leaveSession();
+    };
+  }, []);
 
   const filteredPlayers = players.filter((p) => {
     const term = searchTerm.toLowerCase().trim();
@@ -96,17 +151,31 @@ useEffect(() => {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Hero Overview Header */}
-      
-<div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
-  <Users size={16} className="text-emerald-400" />
-  <span>
-    {visitorCount === null
-      ? 'Counting visitors...'
-      : `${visitorCount.toLocaleString()} unique visitors`}
-  </span>
-</div>
+      {/* Visitor Counters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
+          <Users size={16} className="text-emerald-400" />
+          <span>
+            {visitorCount === null
+              ? 'Counting unique visitors...'
+              : `${visitorCount.toLocaleString()} unique visitors`}
+          </span>
+        </div>
 
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
+          <Activity size={16} className="text-cyan-400" />
+          <span>
+            {activeVisitorCount === null
+              ? 'Checking active visitors...'
+              : `${activeVisitorCount.toLocaleString()} active ${
+                  activeVisitorCount === 1 ? 'visitor' : 'visitors'
+                }`}
+          </span>
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+        </div>
+      </div>
+
+      {/* Hero Overview Header */}
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
